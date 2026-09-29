@@ -1,4 +1,4 @@
-//! A sliding tile puzzle of the Mona Lisa. See `specs/0001-the-board.md`.
+//! A sliding tile puzzle of Van Gogh's Starry Night. See `specs/0001-the-board.md`.
 //!
 //! There is no window yet. What this prints is the rulebook working: a dealt
 //! board, what it would cost at best, and which lifts from here would leave it

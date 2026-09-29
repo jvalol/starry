@@ -1,6 +1,7 @@
-# monalisa
+# starry
 
-A sliding tile puzzle of the Mona Lisa, in tiles thick enough to cast a shadow.
+A sliding tile puzzle of Van Gogh's Starry Night, in tiles thick enough to cast
+a shadow.
 Fifteen slabs and a gap, and three lifts that take a tile out and put it down
 anywhere, which is the thing you are really spending.
 

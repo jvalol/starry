@@ -1,10 +1,10 @@
-# monalisa
+# starry
 
-A sliding tile puzzle of the Mona Lisa, in tiles with thickness. The sixth game
-on `blitzkit` and the third in 3D. The engine owns the window, rendering, input,
-and the meshes and textures the tiles are built from. The dependency is the
-published crate, overridden by the engine checkout at `../blitzkit` when built
-inside this project folder.
+A sliding tile puzzle of Van Gogh's Starry Night, in tiles with thickness. The
+sixth game on `blitzkit` and the third in 3D. The engine owns the window,
+rendering, input, and the meshes and textures the tiles are built from. The
+dependency is the published crate, overridden by the engine checkout at
+`../blitzkit` when built inside this project folder.
 
 ## Build and test
 

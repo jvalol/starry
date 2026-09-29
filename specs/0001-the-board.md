@@ -5,8 +5,8 @@
 
 ## Goal
 
-A sliding tile puzzle of the Mona Lisa, in tiles thick enough to have a shadow,
-with something to decide on most turns.
+A sliding tile puzzle of Van Gogh's Starry Night, in tiles thick enough to have
+a shadow, with something to decide on most turns.
 
 ## Behavior
 

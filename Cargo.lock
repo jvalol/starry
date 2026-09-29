@@ -1242,15 +1242,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "monalisa"
-version = "0.1.0"
-dependencies = [
- "blitzkit",
- "glam",
- "rand 0.8.8",
-]
-
-[[package]]
 name = "moxcms"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2344,6 +2335,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9571ea910ebd84c86af4b3ed27f9dbdc6ad06f17c5f96146b2b671e2976744f"
 dependencies = [
  "bitflags 2.13.2",
+]
+
+[[package]]
+name = "starry"
+version = "0.1.0"
+dependencies = [
+ "blitzkit",
+ "glam",
+ "rand 0.8.8",
 ]
 
 [[package]]
