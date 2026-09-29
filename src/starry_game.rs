@@ -16,6 +16,7 @@ use rand::rngs::StdRng;
 use rand::SeedableRng;
 
 use crate::board::{Board, Direction, CELLS, GAP, WIDTH};
+use crate::lifting::{Confirm, Lifting};
 use crate::tiles::{self, Motion};
 
 /// How far the board reaches, corner to corner, which is what the camera has to
@@ -27,6 +28,20 @@ const BOARD: f32 = tiles::STEP * WIDTH as f32;
 const TRAY_MARGIN: f32 = tiles::TILE * 0.35;
 const TRAY_DEPTH: f32 = tiles::THICKNESS * 2.5;
 const TRAY_COLOR: glam::Vec4 = vec4(0.06, 0.07, 0.11, 1.0);
+
+/// How far the tile under the cursor rises, so it can be found on a painting
+/// that is busy in every square. A tint alone is not enough against this one.
+const CURSOR_RISE: f32 = tiles::THICKNESS * 1.6;
+
+/// What a tile is tinted while lift mode is open: the cursor's at full colour,
+/// a stranding one well down, the rest a little down so the cursor reads.
+const CURSOR_TINT: glam::Vec4 = vec4(1.0, 1.0, 1.0, 1.0);
+const RESTING_TINT: glam::Vec4 = vec4(0.72, 0.72, 0.78, 1.0);
+const STRANDING_TINT: glam::Vec4 = vec4(0.34, 0.32, 0.40, 1.0);
+/// The one that has been warned about and is one press from happening. Spec
+/// 0003 wants the second press to look different from the first, not only to
+/// read differently.
+const WARNED_TINT: glam::Vec4 = vec4(1.0, 0.62, 0.36, 1.0);
 
 /// Paint is close to chalk. Shininess is the exponent on the highlight, so a
 /// high one keeps it small: at the engine's default of 32 a flat tile facing
@@ -46,8 +61,13 @@ pub struct StarryGame {
     /// The drawing catching up with the board. Never the other way round.
     motion: Option<Motion>,
 
+    lifting: Lifting,
+    /// What the game last had to say: a warning, or that a lift is gone.
+    note: String,
+
     help: RenderText,
     readout: RenderText,
+    note_text: RenderText,
 }
 
 impl StarryGame {
@@ -61,10 +81,18 @@ impl StarryGame {
             painting: None,
             tray: None,
             motion: None,
+            lifting: Lifting::new(),
+            note: String::new(),
             help: RenderText {
                 position: vec2(20.0, 20.0),
                 color: vec4(1.0, 1.0, 1.0, 0.85),
-                text: String::from("arrows slide, escape quits"),
+                text: String::from("arrows slide, L lifts, escape quits"),
+                size: 20.0,
+                ..Default::default()
+            },
+            note_text: RenderText {
+                position: vec2(20.0, 76.0),
+                color: vec4(1.0, 0.86, 0.5, 0.95),
                 size: 20.0,
                 ..Default::default()
             },
@@ -82,6 +110,47 @@ impl StarryGame {
         match self.motion {
             Some(motion) if motion.tile == tile => motion.position(),
             _ => tiles::cell_position(cell),
+        }
+    }
+
+    /// The arrows move the cursor while the mode is open, and the gap while it
+    /// is not.
+    fn aim(&mut self, direction: Direction) {
+        if self.lifting.is_open() {
+            self.lifting.move_cursor(&self.board, direction);
+        } else {
+            self.press(direction);
+        }
+    }
+
+    fn toggle_lifting(&mut self) {
+        if self.lifting.is_open() {
+            self.lifting.close();
+        } else if !self.lifting.open(&self.board) {
+            self.note = String::from("no lifts left");
+        }
+    }
+
+    fn confirm_lift(&mut self) {
+        if self.motion.is_some() {
+            return;
+        }
+
+        match self.lifting.confirm(&mut self.board) {
+            Confirm::Nothing => {}
+            Confirm::Warned(_) => {
+                self.note = String::from("this one cannot be undone by sliding. again to take it");
+            }
+            Confirm::Lifted { tile, from, to } => {
+                self.note.clear();
+                self.motion = Some(Motion::lift(tile, from, to));
+            }
+        }
+    }
+
+    fn rewind(&mut self) {
+        if self.motion.is_none() && self.lifting.rewind(&mut self.board) {
+            self.note = String::from("put back. the lift is still spent");
         }
     }
 
@@ -161,11 +230,20 @@ impl Game for StarryGame {
         self.readout.text = if self.board.is_solved() {
             String::from("solved")
         } else {
-            format!("par {}", self.board.par())
+            format!("par {}   lifts {}", self.board.par(), self.lifting.left())
         };
+
+        if self.lifting.can_rewind(&self.board) {
+            self.note = String::from("stuck, and no lifts left. R puts the board back");
+        }
+
+        self.note_text.text = self.note.clone();
 
         text_renderer.render_texts.push(self.help.clone());
         text_renderer.render_texts.push(self.readout.clone());
+        if !self.note.is_empty() {
+            text_renderer.render_texts.push(self.note_text.clone());
+        }
     }
 
     fn draw(&mut self, scene: &mut Scene, camera: &mut Camera) {
@@ -201,11 +279,23 @@ impl Game for StarryGame {
                 continue;
             }
 
+            let (tint, rise) = if !self.lifting.is_open() {
+                (CURSOR_TINT, 0.0)
+            } else if self.lifting.warned() == Some(cell) {
+                (WARNED_TINT, CURSOR_RISE)
+            } else if self.lifting.cursor() == Some(cell) {
+                (CURSOR_TINT, CURSOR_RISE)
+            } else if Lifting::strands(&self.board, cell) {
+                (STRANDING_TINT, 0.0)
+            } else {
+                (RESTING_TINT, 0.0)
+            };
+
             scene.push_textured(
                 self.tiles[tile as usize - 1],
                 painting,
-                &Transform::at(self.drawn_at(tile, cell)),
-                vec4(1.0, 1.0, 1.0, 1.0),
+                &Transform::at(self.drawn_at(tile, cell) + Vec3::Y * rise),
+                tint,
                 TILE_SHININESS,
             );
         }
@@ -217,11 +307,24 @@ impl Game for StarryGame {
         }
 
         match input.key {
-            KeyboardKey::Escape => self.quitting = true,
-            KeyboardKey::Up | KeyboardKey::W => self.press(Direction::Up),
-            KeyboardKey::Down | KeyboardKey::S => self.press(Direction::Down),
-            KeyboardKey::Left | KeyboardKey::A => self.press(Direction::Left),
-            KeyboardKey::Right | KeyboardKey::D => self.press(Direction::Right),
+            // inside the mode escape means "not this", and outside it means
+            // what it always did. A key whose meaning is defined in one state
+            // and forgotten in another is how pause swallowed escape in three
+            // other games. See spec 0003.
+            KeyboardKey::Escape => {
+                if self.lifting.is_open() {
+                    self.lifting.close();
+                } else {
+                    self.quitting = true;
+                }
+            }
+            KeyboardKey::L => self.toggle_lifting(),
+            KeyboardKey::Return => self.confirm_lift(),
+            KeyboardKey::R => self.rewind(),
+            KeyboardKey::Up | KeyboardKey::W => self.aim(Direction::Up),
+            KeyboardKey::Down | KeyboardKey::S => self.aim(Direction::Down),
+            KeyboardKey::Left | KeyboardKey::A => self.aim(Direction::Left),
+            KeyboardKey::Right | KeyboardKey::D => self.aim(Direction::Right),
             _ => {}
         }
     }
@@ -236,6 +339,45 @@ impl Game for StarryGame {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn key(key: KeyboardKey) -> KeyboardInput {
+        KeyboardInput::new(key, KeyboardKeyState::Pressed, false)
+    }
+
+    #[test]
+    fn escape_cancels_the_mode() {
+        let mut game = StarryGame::new();
+        game.process_keyboard(key(KeyboardKey::L));
+        assert!(game.lifting.is_open());
+
+        game.process_keyboard(key(KeyboardKey::Escape));
+
+        assert!(!game.lifting.is_open(), "it closed the mode");
+        assert!(!game.is_quitting(), "and did not quit the game");
+    }
+
+    #[test]
+    fn escape_outside_the_mode_still_quits() {
+        let mut game = StarryGame::new();
+        assert!(!game.lifting.is_open());
+
+        game.process_keyboard(key(KeyboardKey::Escape));
+
+        assert!(game.is_quitting());
+    }
+
+    #[test]
+    fn the_arrows_stop_sliding_while_the_mode_is_open() {
+        let mut game = StarryGame::new();
+        game.process_keyboard(key(KeyboardKey::L));
+        let before = game.board;
+
+        game.process_keyboard(key(KeyboardKey::Right));
+        game.process_keyboard(key(KeyboardKey::Down));
+
+        assert_eq!(game.board, before, "the board held still");
+        assert!(game.motion.is_none(), "and nothing is sliding");
+    }
 
     #[test]
     fn a_frame_does_not_leave_its_text_behind() {

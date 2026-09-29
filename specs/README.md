@@ -10,4 +10,4 @@ not a priority, and it never changes once a spec exists.
 | --- | --- |
 | [0001](0001-the-board.md) | The tiles, the gap, the lift, and what is solvable (draft) |
 | [0002](0002-the-tiles.md) | Slabs, the slices they carry, the tray and the light |
-| [0003](0003-lifting.md) | Aiming a lift, the warning, and the restart (draft) |
+| [0003](0003-lifting.md) | Aiming a lift, the warning, and the way back |

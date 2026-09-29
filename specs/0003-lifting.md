@@ -1,6 +1,6 @@
 # 0003 Lifting
 
-**Status:** draft
+**Status:** implemented
 **Date:** 2026-09-28
 
 ## Goal
@@ -75,9 +75,10 @@ the game can be taken back.
 - L opens the mode when there are lifts left. — `lifting::tests::l_opens_the_mode`
 - L with no lifts left does not open it. — `lifting::tests::no_lifts_left_means_no_mode`
 - L again closes it and spends nothing. — `lifting::tests::l_closes_it_again`
-- Escape closes the mode rather than quitting. — `lifting::tests::escape_cancels_the_mode`
-- Escape with the mode off still quits. — `lifting::tests::escape_outside_the_mode_still_quits`
+- Escape closes the mode rather than quitting. — `starry_game::tests::escape_cancels_the_mode`
+- Escape with the mode off still quits. — `starry_game::tests::escape_outside_the_mode_still_quits`
 - The arrows move the cursor and not the board. — `lifting::tests::the_arrows_move_the_cursor_not_the_board`
+- And the game stops sliding while the mode is open. — `starry_game::tests::the_arrows_stop_sliding_while_the_mode_is_open`
 - The cursor starts on the first cell that is not the gap. — `lifting::tests::the_cursor_starts_in_reading_order`
 - The cursor steps over the gap rather than onto it. — `lifting::tests::the_cursor_steps_over_the_gap`
 - The cursor stays put rather than wrapping. — `lifting::tests::the_cursor_does_not_wrap`
