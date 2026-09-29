@@ -1,6 +1,6 @@
 # 0001 The board
 
-**Status:** draft
+**Status:** implemented
 **Date:** 2026-09-28
 
 ## Goal
@@ -14,14 +14,9 @@ a shadow, with something to decide on most turns.
 the painting on its top face. The slices tile the image exactly: no overlap, no
 gap, and every pixel of the source on exactly one tile.
 
-**A tile is a slab, not a square.** It has thickness, and the edge row of its
-slice is extruded down the bevel, so a tile looks printed rather than cut out of
-a poster. How thick is tuned by eye against the tile's width rather than fixed
-here. Somewhere near one to eight is the starting point, and the test is whether
-the shadow in the gap beside a tile looks like a shadow under something solid.
-
-The thickness is the whole reason this is in 3D. Flat, it would be a picture of
-a puzzle.
+**A tile is a slab, not a square**, and the thickness is the whole reason this
+is in 3D. Flat, it would be a picture of a puzzle. What a slab is made of and
+how thick it is are spec 0002's, which is where the drawing lives.
 
 **Arrows move the gap.** Pressing a direction slides the neighbouring tile into
 the gap, which is the same thing said from the tile's side. A direction with no
@@ -85,7 +80,7 @@ are only three lifts, which is the thing being spent.
 - A slide is the one cell case of the same rule. — `board::tests::a_slide_is_a_lift_of_one`
 - Two stranding lifts undo each other. — `board::tests::a_second_lift_repairs_the_first`
 - The warning depends on the two cells and not on the arrangement. — `board::tests::the_warning_reads_only_the_positions`
-- Three lifts, and the fourth is refused. — `board::tests::there_are_only_three_lifts`
+- Three lifts, and a fourth cannot be started. — `lifting::tests::no_lifts_left_means_no_mode`
 - Par is the distance along rows and columns. — `board::tests::par_is_the_distance_home`
 - A solved board is par zero. — `board::tests::a_solved_board_is_par_zero`
 - Solved is the tiles in order with the gap last. — `board::tests::solved_is_in_order_with_the_gap_last`
@@ -101,12 +96,10 @@ it, and the tests above are that computation kept.
 
 ### Verified by hand
 
-- Tiles look like objects rather than a picture cut into squares. The shadow in
-  the gap beside a tile is what does it.
-- The bevel shows the tile's own edge continuing down it, not the neighbouring
-  tile's pixels.
-- A lift rises out of the tray with its shadow drawing in underneath it.
-- Solved, the sixteen slices make one picture with no visible seams between them.
+None. Everything this spec claims is a rule about an arrangement of numbers, and
+all of it runs without a window. The checks that need one are spec 0002's, where
+the drawing is, and spec 0003's, where the choosing is. They were here first
+only because this was the first spec.
 
 ## Out of scope
 
