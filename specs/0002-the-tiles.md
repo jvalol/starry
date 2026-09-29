@@ -73,12 +73,28 @@ rules testable without a window, and it is worth a test of its own rather than
 a convention someone later breaks by reaching back the other way.
 
 **The painting ships with the game**, the first image to do so: the other five
-carry a sound or build what they draw. It needs a scan with a licence stated in
-the repo, beside it, the way `res/sounds/_readme_and_license.txt` already does
-for the blip. The painting is old enough to be out of copyright everywhere; a
-photograph of it is a separate work and is not automatically. The file also
-wants to be the size the game needs rather than the size an archive offers,
-since a board four tiles wide asks very little of it.
+carry a sound or build what they draw. It is at
+`res/textures/starry-night.jpg`, 1024 square, with what is known about its
+licence in the file beside it the way `res/sounds/_readme_and_license.txt`
+already does for the blip.
+
+It is already square, cropped from a 5:4 painting at a cost of 200 pixels from
+each side. Tiles are square and a painting is not, so something had to give, and
+which side of the canvas is worth losing is a question about that painting
+rather than a rule this spec can state.
+
+1024 gives each tile 256 pixels, against the roughly 150 a tile will occupy on
+screen. There is room to lose some to the half texel inset and to a mip level
+and still have more than the screen asks for.
+
+**The picture is chosen for its tiles, not only for itself.** The Mona Lisa was
+the first choice and the wrong one: a quarter of its tiles would have been plain
+sky and another quarter dark dress, and tiles that look like each other make a
+sliding puzzle tedious rather than hard. Starry Night has distinctive paint in
+all sixteen, and its brushwork runs in a direction, which tells a player not
+just which tile they are holding but which way up it goes. Any picture that
+replaces it has to clear the same bar, and the check is to put a four by four
+grid over it and look at the sixteen squares on their own.
 
 ## Acceptance criteria
 
@@ -89,6 +105,7 @@ since a board four tiles wide asks very little of it.
 - The inset is half a texel of the image it was cut from. — `tiles::tests::the_inset_is_half_a_texel`
 - A tile's sides take their uv from its own edge. — `tiles::tests::the_bevel_comes_from_the_tile_s_own_edge`
 - A tile's box is its width by its width by its thickness. — `tiles::tests::a_tile_is_as_thick_as_it_says`
+- The painting is square, which square tiles need. — `tiles::tests::the_painting_is_square`
 - The top face points up. — `tiles::tests::the_top_face_points_up`
 - Cell to world agrees with spec 0001's numbering, corner for corner. — `tiles::tests::the_corners_land_where_the_board_says`
 - Cells a row apart are a tile and a gap apart in the world. — `tiles::tests::neighbouring_cells_are_one_step_apart`
@@ -117,7 +134,8 @@ since a board four tiles wide asks very little of it.
 ## Out of scope
 
 A chamfer on the tile's edge, which would catch the light better than a square
-one and is the next thing to try if the bevel reads poorly. Any picture other
-than the one. Clicking a tile, which wants blitzkit spec 0025. A camera the
+one and is the next thing to try if the bevel reads poorly. Letting a player
+choose the picture, which is a different game. Clicking a tile, which wants
+blitzkit spec 0025. A camera the
 player can move: the board is the whole scene and there is nothing to look at
 from another angle.
