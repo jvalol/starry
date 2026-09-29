@@ -142,10 +142,15 @@ impl Game for StarryGame {
     fn update(
         &mut self,
         dt: f32,
-        _geometry: &mut Geometry,
+        geometry: &mut Geometry,
         text_renderer: &mut TextRenderer,
         _sound_system: &SoundSystem,
     ) {
+        // the engine does not clear these, the game does, and a game that
+        // forgets grows a vertex buffer until wgpu refuses to allocate it
+        geometry.reset();
+        text_renderer.reset();
+
         if let Some(motion) = self.motion.as_mut() {
             motion.advance(dt);
             if motion.done() {
@@ -231,6 +236,29 @@ impl Game for StarryGame {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_frame_does_not_leave_its_text_behind() {
+        // nothing clears these but the game, and two lines a frame reached
+        // wgpu's buffer limit after a few minutes of running
+        let mut game = StarryGame::new();
+        let mut geometry = Geometry::new();
+        let mut text_renderer = TextRenderer::new();
+        let sounds = SoundSystem::new();
+
+        game.update(0.016, &mut geometry, &mut text_renderer, &sounds);
+        let after_one = text_renderer.render_texts.len();
+
+        for _ in 0..50 {
+            game.update(0.016, &mut geometry, &mut text_renderer, &sounds);
+        }
+
+        assert_eq!(
+            text_renderer.render_texts.len(),
+            after_one,
+            "fifty frames left fifty frames of text"
+        );
+    }
 
     #[test]
     fn a_press_moves_the_board_and_starts_the_drawing_catching_up() {
