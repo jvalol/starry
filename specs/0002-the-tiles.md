@@ -1,6 +1,6 @@
 # 0002 The tiles
 
-**Status:** draft
+**Status:** implemented
 **Date:** 2026-09-28
 
 ## Goal
@@ -112,24 +112,36 @@ grid over it and look at the sixteen squares on their own.
 - The board is centred on the origin. — `tiles::tests::the_board_is_centred`
 - An animation in flight leaves the board alone. — `tiles::tests::animating_never_touches_the_board`
 - An animation ends where the board already says the tile is. — `tiles::tests::a_slide_ends_where_the_tile_already_is`
+- A lift arches up and comes back down on its cell. — `tiles::tests::a_lift_arches_and_comes_back_down`
+- Every face winds the way its own normal points. — `tiles::tests::a_tile_s_faces_wind_with_their_normals`
+- A press moves the board at once and sets the drawing catching up. — `starry_game::tests::a_press_moves_the_board_and_starts_the_drawing_catching_up`
+- A press against the edge moves nothing and animates nothing. — `starry_game::tests::a_press_against_the_edge_does_nothing_at_all`
+- A tile with nothing in flight is drawn at its cell. — `starry_game::tests::a_tile_is_drawn_at_its_cell_once_it_has_arrived`
+
+The winding one earned its place on the first run: the top and bottom faces
+had their normals the wrong way round, and comparing each face's stored normal
+against the cross product of its own edges caught it before anything was drawn.
+A tile you can see straight through is the symptom, and it is not obvious which
+face is at fault when you are looking at it.
 
 ### Verified by hand
 
 - Tiles look like objects rather than a picture cut into squares. The shadow in
   the gap beside a tile is the thing doing that work, so if they look flat, the
-  light is the first place to go.
+  light is the first place to go. Confirmed 2026-09-28, at a thickness of one
+  to eight, which is `tiles::THICKNESS` and the only place that number exists.
 - The bevel shows the tile's own edge continuing down it rather than the
   neighbouring tile's colours.
 - Solved, the fifteen slices and the tray make one picture, with no fringe of
   the wrong tile along any edge. That is the half texel inset, and it is the
   check that says whether it was enough.
 - A lift rises out of the tray with its shadow drawing in underneath it.
-- Whether the camera wants an orthographic projection. Perspective is all the
-  engine has, per spec 0008, and a board this small seen from far enough back
-  with a narrow field of view may be indistinguishable from flat. A little
-  splay may even help the tiles read as solid. This is the check that settles
-  whether blitzkit 0008 needs amending, and the answer belongs back in this
-  spec either way.
+- Whether the camera wants an orthographic projection. **Answered 2026-09-28:
+  it does not.** From 2.05 board widths up and 1.15 back at a 26 degree field
+  of view, the near row is visibly larger than the far one. It was not
+  indistinguishable from flat and it did not need to be: the splay reads as a
+  board tilted away from you, and it is part of what sells the thickness.
+  Perspective stays and blitzkit spec 0008 needs no amendment.
 
 ## Out of scope
 

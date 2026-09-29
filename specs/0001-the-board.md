@@ -75,7 +75,6 @@ are only three lifts, which is the thing being spent.
 
 ## Acceptance criteria
 
-- The slices cover the painting exactly once. — `board::tests::the_slices_tile_the_image`
 - A generated board is solvable. — `board::tests::every_generated_board_is_solvable`
 - A generated board is not already solved. — `board::tests::a_generated_board_is_not_solved`
 - The solved board is solvable, which the parity rule had better agree with. — `board::tests::the_solved_board_is_reachable`
