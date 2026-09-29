@@ -99,8 +99,11 @@ tessera, pong and snake on the same morning this game was started.
 
 ### Verified by hand
 
+All four confirmed 2026-09-29.
+
 - The cursor is visible against the painting, which is busy everywhere. If it
-  cannot be seen over the cypress it cannot be seen.
+  cannot be seen over the cypress it cannot be seen. It rises as well as
+  brightening, because a tint alone was not going to carry it.
 - The dimmed tiles read as unavailable rather than as shadowed, on a board whose
   tiles already have shadows on them.
 - A lift arcs up out of the tray and sets back down, and the tile passing over
@@ -108,7 +111,7 @@ tessera, pong and snake on the same morning this game was started.
 - Taking a warned lift, spending the last one badly, and being offered the way
   back feels like a consequence rather than a trap. The lift is gone and the
   puzzle is not, which is the balance this is trying to strike and the one thing
-  here that only playing it can settle.
+  here that only playing it could settle.
 
 ## Out of scope
 
