@@ -16,6 +16,7 @@ use rand::rngs::StdRng;
 use rand::SeedableRng;
 
 use crate::board::{Board, Direction, CELLS, GAP, WIDTH};
+use crate::hints::{Hints, Level};
 use crate::lifting::{Confirm, Lifting};
 use crate::tiles::{self, Motion};
 
@@ -43,6 +44,11 @@ const STRANDING_TINT: glam::Vec4 = vec4(0.34, 0.32, 0.40, 1.0);
 /// read differently.
 const WARNED_TINT: glam::Vec4 = vec4(1.0, 0.62, 0.36, 1.0);
 
+/// A tile a hint has pointed at. The first one to move is brightest and the
+/// ones after it fade back, so the order is visible without numbers on them.
+const HINT_TINT: glam::Vec4 = vec4(0.62, 1.0, 0.78, 1.0);
+const HINT_FADE: f32 = 0.16;
+
 /// Paint is close to chalk. Shininess is the exponent on the highlight, so a
 /// high one keeps it small: at the engine's default of 32 a flat tile facing
 /// the light washes out to white across its whole face.
@@ -62,6 +68,9 @@ pub struct StarryGame {
     motion: Option<Motion>,
 
     lifting: Lifting,
+    hints: Hints,
+    /// The game playing the solution out. Any key takes it back.
+    watching: bool,
     /// What the game last had to say: a warning, or that a lift is gone.
     note: String,
 
@@ -82,6 +91,8 @@ impl StarryGame {
             tray: None,
             motion: None,
             lifting: Lifting::new(),
+            hints: Hints::new(),
+            watching: false,
             note: String::new(),
             help: RenderText {
                 position: vec2(20.0, 20.0),
@@ -123,6 +134,13 @@ impl StarryGame {
         }
     }
 
+    fn hint(&mut self) {
+        self.hints.step_up(&self.board);
+        if self.hints.level() == Level::Watch {
+            self.watching = true;
+        }
+    }
+
     fn toggle_lifting(&mut self) {
         if self.lifting.is_open() {
             self.lifting.close();
@@ -144,12 +162,15 @@ impl StarryGame {
             Confirm::Lifted { tile, from, to } => {
                 self.note.clear();
                 self.motion = Some(Motion::lift(tile, from, to));
+                // a lift rearranges the board in a way no plan survives
+                self.hints.forget();
             }
         }
     }
 
     fn rewind(&mut self) {
         if self.motion.is_none() && self.lifting.rewind(&mut self.board) {
+            self.hints.forget();
             self.note = String::from("put back. the lift is still spent");
         }
     }
@@ -168,6 +189,7 @@ impl StarryGame {
         // catch up, from where the gap was to where the gap now is
         let moved = self.board.cell(gap);
         self.motion = Some(Motion::slide(moved, self.board.gap(), gap));
+        self.hints.slid(direction);
     }
 }
 
@@ -227,10 +249,35 @@ impl Game for StarryGame {
             }
         }
 
+        // a demonstration is the game pressing the arrows, one slide at a time
+        // and never faster than the animation that draws them
+        if self.watching && self.motion.is_none() {
+            self.hints.ensure(&self.board);
+            match self.hints.next_move() {
+                Some(direction) => self.press(direction),
+                None => self.watching = false,
+            }
+        }
+
         self.readout.text = if self.board.is_solved() {
             String::from("solved")
         } else {
-            format!("par {}   lifts {}", self.board.par(), self.lifting.left())
+            let mut line = format!("par {}   lifts {}", self.board.par(), self.lifting.left());
+
+            if self.hints.level() != Level::None {
+                self.hints.ensure(&self.board);
+                let (count, exact) = self.hints.count();
+                line.push_str(&if exact {
+                    format!("   {} slides left", count)
+                } else {
+                    format!("   at least {} slides left", count)
+                });
+            }
+
+            if self.hints.used() {
+                line.push_str("   hinted");
+            }
+            line
         };
 
         if self.lifting.can_rewind(&self.board) {
@@ -273,6 +320,12 @@ impl Game for StarryGame {
             TRAY_SHININESS,
         );
 
+        let marked = if self.lifting.is_open() {
+            Vec::new()
+        } else {
+            self.hints.marked(&self.board)
+        };
+
         for cell in 0..CELLS {
             let tile = self.board.cell(cell);
             if tile == GAP {
@@ -280,7 +333,13 @@ impl Game for StarryGame {
             }
 
             let (tint, rise) = if !self.lifting.is_open() {
-                (CURSOR_TINT, 0.0)
+                match marked.iter().find(|(at, _)| *at == cell) {
+                    Some((_, turn)) => {
+                        let fade = 1.0 - HINT_FADE * *turn as f32;
+                        (HINT_TINT * vec4(fade, fade, fade, 1.0), 0.0)
+                    }
+                    None => (CURSOR_TINT, 0.0),
+                }
             } else if self.lifting.warned() == Some(cell) {
                 (WARNED_TINT, CURSOR_RISE)
             } else if self.lifting.cursor() == Some(cell) {
@@ -306,6 +365,13 @@ impl Game for StarryGame {
             return;
         }
 
+        // the moves stop for any key, and the key that stops them does nothing
+        // else. Escape among them: it takes the game back rather than quitting.
+        if self.watching {
+            self.watching = false;
+            return;
+        }
+
         match input.key {
             // inside the mode escape means "not this", and outside it means
             // what it always did. A key whose meaning is defined in one state
@@ -318,6 +384,7 @@ impl Game for StarryGame {
                     self.quitting = true;
                 }
             }
+            KeyboardKey::H => self.hint(),
             KeyboardKey::L => self.toggle_lifting(),
             KeyboardKey::Return => self.confirm_lift(),
             KeyboardKey::R => self.rewind(),
@@ -377,6 +444,67 @@ mod tests {
 
         assert_eq!(game.board, before, "the board held still");
         assert!(game.motion.is_none(), "and nothing is sliding");
+    }
+
+    #[test]
+    fn a_hint_marks_the_run() {
+        let mut game = StarryGame::new();
+        assert!(!game.hints.used());
+
+        game.process_keyboard(key(KeyboardKey::H));
+
+        assert!(game.hints.used(), "and it stays marked");
+        assert_eq!(game.hints.level(), Level::Count);
+    }
+
+    #[test]
+    fn watching_stops_on_a_key() {
+        let mut game = StarryGame::new();
+        for _ in 0..4 {
+            game.process_keyboard(key(KeyboardKey::H));
+        }
+        assert!(game.watching, "four steps reaches the demonstration");
+
+        game.process_keyboard(key(KeyboardKey::Up));
+
+        assert!(!game.watching, "and any key takes it back");
+    }
+
+    #[test]
+    fn escape_stops_watching() {
+        let mut game = StarryGame::new();
+        for _ in 0..4 {
+            game.process_keyboard(key(KeyboardKey::H));
+        }
+        assert!(game.watching);
+
+        game.process_keyboard(key(KeyboardKey::Escape));
+
+        assert!(!game.watching, "it stopped the demonstration");
+        assert!(!game.is_quitting(), "and did not quit the game");
+    }
+
+    #[test]
+    fn watching_plays_the_board_towards_solved() {
+        let mut game = StarryGame::new();
+        let before = game.board.par();
+        for _ in 0..4 {
+            game.process_keyboard(key(KeyboardKey::H));
+        }
+
+        let mut geometry = Geometry::new();
+        let mut text_renderer = TextRenderer::new();
+        let sounds = SoundSystem::new();
+        for _ in 0..400 {
+            game.update(0.05, &mut geometry, &mut text_renderer, &sounds);
+        }
+
+        assert!(
+            game.board.par() < before,
+            "it got closer: {} to {}",
+            before,
+            game.board.par()
+        );
     }
 
     #[test]

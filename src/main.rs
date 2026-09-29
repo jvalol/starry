@@ -1,6 +1,7 @@
 //! A sliding tile puzzle of Van Gogh's Starry Night. See `specs/`.
 
 mod board;
+mod hints;
 mod lifting;
 mod starry_game;
 mod tiles;

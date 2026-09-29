@@ -1,6 +1,6 @@
 # 0004 Hints
 
-**Status:** draft
+**Status:** implemented
 **Date:** 2026-09-29
 
 ## Goal
@@ -21,7 +21,12 @@ one before:
    takes it back.
 
 A level, once reached, stays for that puzzle. A player cannot un-see a hint and
-the game does not pretend otherwise. A new board starts at none.
+the game does not pretend otherwise.
+
+A new board would start at none, and there is no new board: spec 0003 turned
+the restart into a rewind, so nothing in this game ever deals a second puzzle.
+Said here rather than carried as code with no caller, and worth remembering if a
+new board ever arrives.
 
 **Hints count slides, never lifts.** A solver allowed to lift would answer every
 board in one or two moves and the three lifts are a resource the player is
@@ -82,6 +87,9 @@ Marking it costs nothing and keeps the number honest.
 - Watching stops on a key. — `starry_game::tests::watching_stops_on_a_key`
 - Escape stops watching rather than quitting. — `starry_game::tests::escape_stops_watching`
 - Taking a hint marks the run. — `starry_game::tests::a_hint_marks_the_run`
+- Watching gets the board closer to solved. — `starry_game::tests::watching_plays_the_board_towards_solved`
+- The marked tiles are ones that move, and no more than five. — `hints::tests::the_marked_tiles_are_the_ones_about_to_move`
+- A count points at nothing. — `hints::tests::level_one_marks_nothing`
 
 The floor ones are the load-bearing pair. A lower bound that is sometimes above
 the true answer is worse than no number at all, because a player who is told
