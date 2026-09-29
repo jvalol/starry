@@ -49,8 +49,13 @@ pub fn distance(a: usize, b: usize) -> usize {
 
 /// Whether moving the gap from `gap` to `tile` leaves the puzzle finishable.
 ///
+/// Spec 0001 has the game warn before a lift that strands the player, and no
+/// spec yet says how a player picks the tile to lift, so nothing calls this
+/// from the game side yet.
+///
 /// It reads the two positions and nothing else: the arrangement does not come
 /// into it, which was checked against all 240 pairs of cells. See spec 0001.
+#[allow(dead_code)]
 pub fn lift_is_safe(gap: usize, tile: usize) -> bool {
     !distance(gap, tile).is_multiple_of(2)
 }
@@ -121,6 +126,7 @@ impl Board {
     /// Takes the tile at `tile` out and puts it in the gap. Refuses only the
     /// gap itself: a lift that strands the player is allowed, because spec 0001
     /// warns them rather than stopping them.
+    #[allow(dead_code)]
     pub fn lift(&mut self, tile: usize) -> bool {
         let gap = self.gap();
         if tile == gap || tile >= CELLS {
@@ -134,6 +140,7 @@ impl Board {
     ///
     /// For a four wide board that is its inversion count plus the gap's row
     /// counted from the bottom being odd. See spec 0001.
+    #[allow(dead_code)]
     pub fn is_solvable(&self) -> bool {
         let tiles: Vec<u8> = self.cells.iter().copied().filter(|c| *c != GAP).collect();
         let inversions = (0..tiles.len())
