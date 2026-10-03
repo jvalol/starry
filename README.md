@@ -10,3 +10,7 @@ engine and the third in 3D.
 
 Nothing is built yet beyond the rules. `specs/0001-the-board.md` is the game,
 and `src/board.rs` is the part of it that needs no window.
+
+---
+
+I asked AI to draft this for me. I've edited it. Any surviving AI smells are my oversight.
