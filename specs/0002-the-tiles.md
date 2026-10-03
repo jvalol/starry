@@ -28,8 +28,8 @@ Pulling each rectangle in by half a texel costs half a row of the painting,
 which nobody will ever see, and removes it.
 
 This is spec 0024's hazard arriving in the first thing that could have hit it.
-That spec left the inset to the game on the grounds that a rectangle quietly
-becoming a different rectangle is worse to debug, and this is the game doing it
+That spec left the inset to the game, on the grounds that a rectangle quietly
+becoming a different rectangle is worse to debug. This is the game doing it
 where it can be seen.
 
 Giving each tile its own texture would be the other way out and is worse here.
@@ -41,8 +41,8 @@ than a neighbour's pixel.
 top face's edge along their length, so the outermost row of the slice smears
 down the side. A tile then reads as printed through rather than as a picture
 laid on a block. Continuing the painting past the tile's edge would make a
-solved board look more continuous and is wrong the rest of the time, since a
-tile in the wrong place would wear its neighbour's colours on its sides.
+solved board look more continuous and is wrong the rest of the time. A tile in
+the wrong place would wear its neighbour's colours.
 
 **Thickness is a ratio, tuned by eye.** Near one to eight against the tile's
 width is where to start. The test is whether the shadow a tile drops into the
@@ -79,17 +79,17 @@ licence in the file beside it the way `res/sounds/_readme_and_license.txt`
 already does for the blip.
 
 It is already square, cropped from a 5:4 painting at a cost of 200 pixels from
-each side. Tiles are square and a painting is not, so something had to give, and
-which side of the canvas is worth losing is a question about that painting
-rather than a rule this spec can state.
+each side. Tiles are square and a painting is not, so something had to give.
+Which side of the canvas is worth losing is a question about that painting, not
+a rule this spec can state.
 
 1024 gives each tile 256 pixels, against the roughly 150 a tile will occupy on
 screen. There is room to lose some to the half texel inset and to a mip level
 and still have more than the screen asks for.
 
 **The picture is chosen for its tiles, not only for itself.** The Mona Lisa was
-the first choice and the wrong one: a quarter of its tiles would have been plain
-sky and another quarter dark dress, and tiles that look like each other make a
+the first choice and the wrong one. A quarter of its tiles would have been
+plain sky and another quarter dark dress, and tiles that look alike make a
 sliding puzzle tedious rather than hard. Starry Night has distinctive paint in
 all sixteen, and its brushwork runs in a direction, which tells a player not
 just which tile they are holding but which way up it goes. Any picture that
@@ -118,11 +118,11 @@ grid over it and look at the sixteen squares on their own.
 - A press against the edge moves nothing and animates nothing. — `starry_game::tests::a_press_against_the_edge_does_nothing_at_all`
 - A tile with nothing in flight is drawn at its cell. — `starry_game::tests::a_tile_is_drawn_at_its_cell_once_it_has_arrived`
 
-The winding one earned its place on the first run: the top and bottom faces
-had their normals the wrong way round, and comparing each face's stored normal
-against the cross product of its own edges caught it before anything was drawn.
-A tile you can see straight through is the symptom, and it is not obvious which
-face is at fault when you are looking at it.
+The winding one earned its place on the first run. The top and bottom faces had
+their normals the wrong way round, and comparing each stored normal against the
+cross product of its own edges caught it before anything was drawn. A tile you
+can see straight through is the symptom, and it is not obvious which face is at
+fault when you are looking at it.
 
 ### Verified by hand
 
