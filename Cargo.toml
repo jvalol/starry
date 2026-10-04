@@ -7,6 +7,6 @@ rust-version = "1.87"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-blitzkit = "0.10"
+blitzkit = "0.11"
 glam = "0.33"
 rand = "0.8.3"
