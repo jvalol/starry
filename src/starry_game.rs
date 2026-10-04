@@ -237,6 +237,13 @@ impl Game for StarryGame {
         text_renderer: &mut TextRenderer,
         _sound_system: &SoundSystem,
     ) {
+        // the opening frame is this game's picture: the painting cut up and
+        // shuffled in its tray, which is where every run begins. So a staged
+        // run stages nothing and only stops anything that would move.
+        if crate::staged() {
+            self.motion = None;
+        }
+
         // the engine does not clear these, the game does, and a game that
         // forgets grows a vertex buffer until wgpu refuses to allocate it
         geometry.reset();

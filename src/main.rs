@@ -9,6 +9,12 @@ mod tiles;
 use blitzkit::start;
 use starry_game::StarryGame;
 
+/// Whether this run is only here to be photographed, for `refresh-screenshots`
+/// in the project above.
+pub fn staged() -> bool {
+    std::env::args().any(|arg| arg == "--screenshot")
+}
+
 fn main() {
     start("starry", Box::new(StarryGame::new()));
 }
