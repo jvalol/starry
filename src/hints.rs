@@ -10,10 +10,21 @@ use crate::board::{Board, Direction, CELLS, GAP, WIDTH};
 
 /// How many search nodes a hint may cost.
 ///
-/// Sixteen boards from this game's own scramble needed a median of 1,295 and at
-/// most 24,808, so this is an order of magnitude past anything play produces.
-/// Uniformly random boards reach ten million, which is the case this refuses.
-pub const BUDGET: usize = 400_000;
+/// Sixteen boards gave a median of 1,295 and a worst case of 24,808, and 400,000
+/// was read off that as an order of magnitude past anything play produces.
+/// Sixteen was too few to see the tail. Over 200 seeds of this game's own
+/// scramble, five beat 400,000: a player meets one about one game in forty, and
+/// what they get is the hints quietly refusing to plan and the demonstration
+/// switching itself off on its first frame.
+///
+/// All five solve at two million, taking between 150 and 550 milliseconds. That
+/// is the cost of this number: one hitch of up to half a second when hints are
+/// first turned on, on one board in forty, against those boards getting no
+/// hints at all.
+///
+/// Uniformly random boards reach ten million, which is still the case this
+/// refuses.
+pub const BUDGET: usize = 2_000_000;
 
 /// How many moves level three shows.
 pub const FEW: usize = 5;
