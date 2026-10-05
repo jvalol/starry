@@ -5,6 +5,7 @@ use blitzkit::camera::Camera;
 use blitzkit::geometry::Geometry;
 use blitzkit::keyboard::{KeyboardInput, KeyboardKey, KeyboardKeyState};
 use blitzkit::mesh::{MeshData, Transform};
+use blitzkit::notice;
 use blitzkit::renderer::render_text::{RenderText, TextRenderer};
 use blitzkit::renderer::scene::{MeshId, Scene, TextureId};
 use blitzkit::renderer::Renderer;
@@ -293,11 +294,20 @@ impl Game for StarryGame {
 
         self.note_text.text = self.note.clone();
 
-        text_renderer.render_texts.push(self.help.clone());
-        text_renderer.render_texts.push(self.readout.clone());
+        let mut lines = vec![self.help.clone(), self.readout.clone()];
         if !self.note.is_empty() {
-            text_renderer.render_texts.push(self.note_text.clone());
+            lines.push(self.note_text.clone());
         }
+
+        // the readout goes on a panel, so it reads over the painting rather
+        // than into it. See blitzkit's spec 0038.
+        if let Some(frame) = notice::framing_all(&lines) {
+            for quad in frame.iter() {
+                geometry.push_quad(quad);
+            }
+        }
+
+        text_renderer.render_texts.extend(lines);
     }
 
     fn draw(&mut self, scene: &mut Scene, camera: &mut Camera) {
