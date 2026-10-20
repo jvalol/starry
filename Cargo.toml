@@ -10,3 +10,12 @@ license = "MIT OR Apache-2.0"
 blitzkit = "0.12"
 glam = "0.33"
 rand = "0.8.3"
+
+# What a browser build needs told. Spec 0055: three versions of getrandom
+# are reachable from this project and each wants saying differently. 0.2
+# takes a feature called `js`; 0.3 and 0.4 take one called `wasm_js`, and
+# `build-web` passes the `getrandom_backend` cfg that goes with them.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom_02 = { package = "getrandom", version = "0.2", features = ["js"] }
+getrandom_03 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }
+getrandom = { version = "0.4", features = ["wasm_js"] }
