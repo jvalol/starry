@@ -3,7 +3,7 @@ name = "starry"
 version = "0.1.0"
 authors = ["Jake Van Alstyne ☥ <j@jva.lol>"]
 edition = "2018"
-rust-version = "1.87"
+rust-version = "1.90"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
