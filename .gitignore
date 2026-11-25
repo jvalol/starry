@@ -1,1 +1,6 @@
 target/
+
+# What a failed picture test writes beside the reference, which is there to
+# be looked at and not to be committed. The engine's spec 0076.
+tests/pictures/*-drawn.png
+tests/pictures/*-diff.png
